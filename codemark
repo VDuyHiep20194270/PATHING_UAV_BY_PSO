@@ -1,0 +1,66 @@
+Function: ParticleSwarmOptimization(NumberIndividuals, NumberUAVs, NumberPoints,Starts, Goals,BoundMaps,BoundVitesses, Phip, Phig, OmegaMin, OmegaMax, Tol):
+Input: NumberIndividuals: number of individuals in the population
+       NumberUAVs: number of UAV in an individual 
+       NumberPoints: UAV points are considered for UAV to pass through
+       Starts: start points of UAVs
+       Goals: goal points of UAVs
+       BoundMaps : Bounds of UAVs on map, BoundMaps[NumberUAVs][1] is array of min and max of xNumberUAVs, BoundMaps[NumberUAVs][2] is array of min and max of yNumberUAVsUAV
+       BoundVitesses : Bounds of Vitesse of UAVs,BoundVitesses[NumberUAVs][1] is min VitesseNumberUAVs , BoundVitesses[NumberUAVs][2] is max VitesseNumberUAVs
+       Phip: the influence of a best result of individual on that velocity update of individual
+       Phig:  the influence of a best result of entire population on that velocity update of individual
+       OmegaMin: Min of Omega - The effect of the current velocity on the new velocity
+       OmegaMax: Max of Omega - The effect of the current velocity on the new velocity
+       Tol: Tolerance - determine the stopping condition of the PSO algorithm
+Output:OptimalRoute:=[[(xNumberPoints,yNumberPoints,vNumberPoints)]NumberUAVs]       
+Begin:
+    Population=[]
+    Velocity= Random()
+    Iteration=1
+    For i=1 To i=NumberIndividuals Step 1  
+        For j=1 To j=NumberUAVs Step 1                                
+            Population[i][j][1]=[Starts[j][1],Starts[j][2],RandomInteger(BoundVitesses[j][1],BoundVitesses[j][2])]
+            Population[i][j][1]=[Goals[j][1],Goals[j][2],0]
+            For k=2 To k=NumberPoints-1 Step 1
+                Population[i][j][k]=[RandomInteger(BoundMaps[j][1][1],BoundMaps[j][1][2]),RandomInteger(BoundMaps[j][2][1],BoundMap[j][2][2]),RandomInteger(BoundVitesses[j][1],BoundVitesses[j][2])]
+            End For
+        End For
+        FitnessValues[i]=EvaluateFitness(Population[i])
+        LocalBest[i]=Population[i]
+        LocalBestFitnessValues[i]=FitnessValues[i]
+    End For
+    GlobalBest=Population[1]
+    GlobalBestFitnessValues=FitnessValues[1]
+    For i=1 To i=NumberIndividuals Step 1
+        If OptimalFitnessValues >  FitnessValues[i] Then
+            GlobalBest = Population[i]
+            GlobalBestFitnessValues = FitnessValues[i]
+        End If
+    End For
+    While Iteration < IterationMax and IterationsNoImprove < 50 do
+        If Iteration%40 == 0 or IterationsNoImprove%20 == 0:
+            Velocity= Random()
+        End If
+        For i=1 To i=NumberIndividuals Step 1
+            Omega = OmegaMax - (((OmegaMax - OmegaMin) x Iteration) / IterationMax)
+            Random Rp, Rg from 0 to 1
+            velocity[i] = Omega x Velocity[i] + Rp x Phip x (LocalBest[i] - Population[i]) + Rg x Phig x (GlobalBest - Population[i])
+            Population[i] = Population[i]+ Velocity[i]
+            FitnessValues[i]<- EvaluateFitness(Population[i])
+            If FitnessValues[i] < LocalBestFitnessValues[i] then
+                LocalBest[i] = Population[i]
+                LocalBestFitnessValues[i] = FitnessValues[i]
+            End If
+            If LocalBestFitnessValues[i] < GlobalBestFitnessValues Then
+                GlobalBestFitnessValuesOld = GlobalBestFitnessValues
+                GlobalBest = LocalBest[i]
+                GlobalBestFitnessValues = LocalBestFitnessValues[i]
+            End If
+        End For
+        If GlobalBestFitnessValuesOld-Tol < GlobalBestFitnessValues then
+            IterationsNoImprove = 1
+        Else
+            IterationsNoImprove = IterationsNoImprove+ 1
+        End If
+    End While
+    OptimalRoute = GlobalBest
+End
