@@ -291,7 +291,7 @@ def particle_swarm_optimization(f,bounds,bounds2,n, phip, phig, omega_min, omega
     old_global_best_val = map_dim * num_points*2
     global_best_val = f([global_best,global_best2])
     iteration = 1
-
+    maxVelocity=12
     iterations_no_improv = 1
     found_new_global_best = False
     plt.ion()
@@ -304,7 +304,7 @@ def particle_swarm_optimization(f,bounds,bounds2,n, phip, phig, omega_min, omega
     paths_iteration=[]
     # loop for pso iterations
     # while abs(global_best_val - old_global_best_val) > tol  and iteration < num_iterations and iterations_no_improv < 50 :
-    while iteration < num_iterations and iterations_no_improv < 80 :
+    while iteration < num_iterations and iterations_no_improv < 80:
 
         print("iteration num "+str(iteration)+"      current best path length = "+str(global_best_val))
 
@@ -322,7 +322,6 @@ def particle_swarm_optimization(f,bounds,bounds2,n, phip, phig, omega_min, omega
         paths_population=[]
         # loop to update every particle/path
         for p in range(n):
-            isCollided=0
             reset = True
 
             while reset:
@@ -343,8 +342,8 @@ def particle_swarm_optimization(f,bounds,bounds2,n, phip, phig, omega_min, omega
                 #if particle_velocity[i].any() > vmax : #is any velocity is greater than vmax
 
         # Check if any velocity component is greater than vmax and clip it if necessary
-                if np.any(np.abs(velocity[p]) > 10):
-                   velocity[p] = np.clip(velocity[p], -10, 10)
+                if np.any(np.abs(velocity[p]) > maxVelocity):
+                   velocity[p] = np.clip(velocity[p], -maxVelocity, maxVelocity)
 
                 paths[p] = (np.round(np.add(paths[p],velocity[p]))).astype(int)
                 check_bounds(bounds,paths[p])
@@ -361,8 +360,8 @@ def particle_swarm_optimization(f,bounds,bounds2,n, phip, phig, omega_min, omega
                 ,[phig*rg*i for i in ([x1-x2 for (x1,x2) in zip(global_best2,paths2[p])])])
                 #if particle_velocity[i].any() > vmax : #is any velocity is greater than vmax
         # Check if any velocity component is greater than vmax and clip it if necessary
-                if np.any(np.abs(velocity2[p]) > 10):
-                   velocity2[p] = np.clip(velocity2[p], -10, 10)
+                if np.any(np.abs(velocity2[p]) > maxVelocity):
+                   velocity2[p] = np.clip(velocity2[p], -maxVelocity, maxVelocity)
 
                 paths2[p] = (np.round(np.add(paths2[p],velocity2[p]))).astype(int)
                 check_bounds(bounds2,paths2[p])
@@ -383,7 +382,7 @@ def particle_swarm_optimization(f,bounds,bounds2,n, phip, phig, omega_min, omega
                 global_best_val = local_best_val[p]
                 found_new_global_best = True
 
-        paths_iteration.append(paths_population)
+        paths_iteration.append(global_best_val)
         iteration += 1
         
         if found_new_global_best:
@@ -391,7 +390,7 @@ def particle_swarm_optimization(f,bounds,bounds2,n, phip, phig, omega_min, omega
         else:
             iterations_no_improv += 1
 
-        # plot the paths
+    #     # plot the paths
         for i in range(n):
             path = np.array(local_best[i])
             x = [point[0] for point in path]
@@ -405,12 +404,17 @@ def particle_swarm_optimization(f,bounds,bounds2,n, phip, phig, omega_min, omega
         plt.draw()
         plt.savefig('./images/animation/iteration'+str(iteration-1)+'.png')
     plt.figure()
-    for k in range(n):
-        x = [i for i in range(iteration-1)] 
-        y = [paths_iteration[j][k]/10 for j in range(iteration-1)]
-        plt.plot(x, y, color=f"#{random.randint(0, 0xFFFFFF):06x}" )
-    plt.xlabel('fitness_values')
-    plt.ylabel('iteration')
+    if(iteration>=200):
+        x = [i for i in range(200)] 
+        y = [paths_iteration[j] for j in range(200)]
+    else:
+        x = [i for i in range(100)] 
+        y = [paths_iteration[j] for j in range(100)]
+    # x = np.append(np.array(start[0]),np.append(x,goal[0]))
+    # y = np.append(np.array(start[1]),np.append(y,goal[1]))
+    plt.plot(x, y, color=f"#{random.randint(0, 0xFFFFFF):06x}")
+    plt.xlabel('iteration')
+    plt.ylabel('fitness values')
     plt.show()
 
     return global_best,global_best2, global_best_val, iteration
@@ -568,7 +572,7 @@ phig = 5.2
 omega_min = 0.7
 omega_max = 1.1
 
-tol=0.00000000000000000000000001
+tol=0.0000000001
 
 
 import shutil, os
